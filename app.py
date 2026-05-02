@@ -109,10 +109,8 @@ def patch_log_route(doc_id):
         doc = ibm_services.update_log_status(doc_id, status)
         
         if status == "escalated":
-            try:
-                ibm_services.send_escalation_email(doc)
-            except Exception as e:
-                pass
+            import threading
+            threading.Thread(target=ibm_services.send_escalation_email, args=(doc,), daemon=True).start()
                 
         return jsonify({"success": True})
     except Exception as e:

@@ -283,13 +283,13 @@ Recommendation:
 {log_data.get('recommendation', 'N/A')}
 """
 
-    msg = MIMEText(body)
+    msg = MIMEText(body, 'plain', 'utf-8')
     msg['Subject'] = subject
     msg['From'] = email_user
     msg['To'] = ", ".join(recipients)
 
     try:
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10)
         server.login(email_user, email_pass)
         server.sendmail(email_user, recipients, msg.as_string())
         server.quit()
