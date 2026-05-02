@@ -305,12 +305,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         successModal.classList.add('active');
                     }
                 } else {
-                    let errText;
+                    let errText = res.statusText;
                     try {
                         const err = await res.json();
-                        errText = err.error || res.statusText;
+                        errText = err.error || err.message || errText;
                     } catch (parseErr) {
-                        errText = await res.text();
+                    // Do nothing, fallback already set
                     }
                     alert(`Failed to update status (${res.status}): ${errText}`);
                     btn.innerText = originalText;
