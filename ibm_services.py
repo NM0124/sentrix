@@ -4,8 +4,7 @@ import json
 from datetime import datetime
 import traceback
 import google.generativeai as genai
-import smtplib
-from email.mime.text import MIMEText
+import resend
 
 # IBM NLU
 from ibm_watson import NaturalLanguageUnderstandingV1
@@ -253,13 +252,15 @@ def get_stats():
     }
 
 def send_escalation_email(log_data):
-    email_user = os.getenv('EMAIL_USER')
-    email_pass = os.getenv('EMAIL_PASS')
+    api_key = os.getenv('RESEND_API_KEY')
     escalation_emails_str = os.getenv('ESCALATION_EMAILS')
+    from_email = os.getenv('RESEND_FROM_EMAIL', 'onboarding@resend.dev')
 
-    if not email_user or not email_pass or not escalation_emails_str:
-        print("Escalation logged (email not configured)")
+    if not api_key or not escalation_emails_str:
+        print("Escalation logged (Resend API key or recipients not configured)")
         return
+
+    resend.api_key = api_key
 
     recipients = [email.strip() for email in escalation_emails_str.split(',') if email.strip()]
     if not recipients:
@@ -283,17 +284,14 @@ Recommendation:
 {log_data.get('recommendation', 'N/A')}
 """
 
-    msg = MIMEText(body, 'plain', 'utf-8')
-    msg['Subject'] = subject
-    msg['From'] = email_user
-    msg['To'] = ", ".join(recipients)
-
     try:
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10)
-        server.login(email_user, email_pass)
-        server.sendmail(email_user, recipients, msg.as_string())
-        server.quit()
-        print(f"Escalation email sent to {', '.join(recipients)}")
+        response = resend.Emails.send({
+            "from": f"Sentrix Security <{from_email}>",
+            "to": recipients,
+            "subject": subject,
+            "text": body
+        })
+        print(f"Escalation email sent via Resend to {', '.join(recipients)}")
     except Exception as e:
-        print(f"Failed to send escalation email: {e}")
+        print(f"Failed to send escalation email via Resend: {e}")
 
