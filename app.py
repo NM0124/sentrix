@@ -29,10 +29,8 @@ def check_auth():
     if request.path == '/admin-dashboard.html' or request.path == '/static/admin.js':
         if 'user' not in session:
             return redirect('/admin-login.html')
-
-# ==========================================
+            
 # Frontend Serving Routes
-# ==========================================
 
 @app.route('/')
 @app.route('/index.html')
@@ -52,9 +50,7 @@ def serve_unauthorized():
     return render_template('unauthorized.html')
 
 
-# ==========================================
 # Core API Routes
-# ==========================================
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
@@ -125,9 +121,7 @@ def patch_log_route(doc_id):
         return jsonify({"error": str(e)}), 500
 
 
-# ==========================================
 # IBM App ID Routes (Structure)
-# ==========================================
 
 APPID_CLIENT_ID = os.getenv('APPID_CLIENT_ID')
 APPID_CLIENT_SECRET = os.getenv('APPID_CLIENT_SECRET')
