@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Sentrix</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        fetch('/api/user')
+            .then(res => {
+                if (!res.ok) {
+                    window.location.replace('/admin-login.html');
+                }
+            })
+            .catch(err => {
+                window.location.replace('/admin-login.html');
+            });
+    </script>
+
+</head>
+
+<body>
+
+    <div id="page-loader" class="page-loader">
+        <i data-lucide="loader-2" class="spin"
+            style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem;"></i>
+        <h2 style="color: var(--foreground); font-weight: 600;">Loading Dashboard...</h2>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal-overlay" id="reviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Review Alert</h3>
+                <button class="btn-close" id="closeModalBtn"><i data-lucide="x" style="width: 20px;"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row grid-2">
+                    <div>
+                        <span class="detail-label">Alert ID</span>
+                        <div class="detail-value" id="modal-id" style="font-family: monospace;">-</div>
+                    </div>
+                    <div>
+                        <span class="detail-label">Time</span>
+                        <div class="detail-value" id="modal-time">-</div>
+                    </div>
+                </div>
+                <div class="detail-row grid-2">
+                    <div>
+                        <span class="detail-label">Intent Category</span>
+                        <div class="detail-value" id="modal-intent" style="font-weight: 600;">-</div>
+                    </div>
+                    <div>
+                        <span class="detail-label">Risk Level</span>
+                        <div class="detail-value" id="modal-risk">-</div>
+                    </div>
+                </div>
+                <div class="detail-row grid-2">
+                    <div>
+                        <span class="detail-label">Severity</span>
+                        <div class="detail-value" id="modal-severity">-</div>
+                    </div>
+                    <div>
+                        <span class="detail-label">Confidence</span>
+                        <div class="detail-value" id="modal-confidence">-</div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Flagged Content</span>
+                    <div class="detail-value" id="modal-content" style="white-space: pre-wrap;">-</div>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">AI Reasoning</span>
+                    <div class="detail-value" id="modal-reason" style="background-color: #fff; border-color: #e4e4e7;">-
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">System Recommendation</span>
+                    <div class="detail-value" id="modal-recommendation" style="font-weight: 500;">-</div>
+                </div>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; flex-wrap: wrap;">
+                <button class="btn btn-ghost review-action-btn" data-status="false_positive"
+                    style="color: var(--muted-foreground); border: 1px solid var(--border);">False Positive</button>
+                <button class="btn btn-ghost review-action-btn" data-status="escalated"
+                    style="color: var(--destructive); border: 1px solid var(--border); background-color: #fee2e2;">Escalate</button>
+                <button class="btn btn-ghost review-action-btn" data-status="resolved"
+                    style="color: #10b981; border: 1px solid var(--border); background-color: #d1fae5;">Resolve</button>
+                <button class="btn btn-primary review-action-btn" data-status="reviewed">Mark Reviewed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Escalation Success Modal -->
+    <div class="modal-overlay" id="escalationSuccessModal">
+        <div class="modal-content"
+            style="max-width: 450px; text-align: center; padding: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: auto;">
+            <div style="display: flex; justify-content: center; margin-bottom: 1.5rem; color: #10b981;">
+                <i data-lucide="check-circle" style="width: 48px; height: 48px;"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--foreground);">Alert
+                Escalated to Authority</h2>
+            <p style="color: var(--muted-foreground); line-height: 1.6; margin-bottom: 2rem;">
+                The alert has been successfully escalated.<br>
+                A notification has been sent from Sentrix Authority System (authority.sentrix@gmail.com).
+            </p>
+            <button class="btn btn-primary" id="closeSuccessModalBtn" style="width: 100%;">Close</button>
+        </div>
+    </div>
+
+    <div class="dashboard-layout" id="dashboard-layout">
+
+        <!-- Top Navigation Bar -->
+        <nav class="hp-navbar">
+            <a href="/" class="hp-brand">
+                <img src="/static/images/sentrix-logo.png" alt="Sentrix Logo" class="logo-img">
+                <img src="/static/images/sentrix-text.png" alt="Sentrix" class="brand-png-text">
+            </a>
+
+            <div class="hp-nav-links">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1rem;">
+                    <div
+                        style="width: 36px; height: 36px; background-color: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem;">
+                        AD
+                    </div>
+                    <span style="font-weight: 600; font-size: 0.9375rem;">Admin User</span>
+                </div>
+                <a href="/api/auth/logout" class="hp-nav-btn btn-logout">
+                    <i data-lucide="log-out" style="width: 16px;"></i> Logout
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <div class="mb-8">
+                <h2 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem;">Platform Overview</h2>
+                <p class="text-muted" style="font-size: 1rem; margin-bottom: 0.5rem;">Real-time intelligence and content
+                    moderation metrics.</p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-4 gap-6 mb-8"
+                style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <span class="text-sm">Total Analyses</span>
+                        <i data-lucide="activity" style="width: 18px;"></i>
+                    </div>
+                    <div class="stat-value" id="stat-total">-</div>
+                    <span class="text-xs text-muted">All time</span>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <span class="text-sm">High Risk Cases</span>
+                        <i data-lucide="alert-octagon" style="width: 18px; color: var(--destructive);"></i>
+                    </div>
+                    <div class="stat-value" id="stat-high-risk">-</div>
+                    <span class="text-xs text-destructive">Requires review</span>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <span class="text-sm">Fake News Detected</span>
+                        <i data-lucide="book-x" style="width: 18px; color: var(--warning);"></i>
+                    </div>
+                    <div class="stat-value" id="stat-fake-news">-</div>
+                    <span class="text-xs text-muted">Flagged toxic/fake</span>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <span class="text-sm">Pending Reviews</span>
+                        <i data-lucide="clock" style="width: 18px; color: var(--primary);"></i>
+                    </div>
+                    <div class="stat-value" id="stat-pending">-</div>
+                    <span class="text-xs text-muted">Action required</span>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-2 gap-6 mb-8">
+                <div class="card">
+                    <div class="card-header"
+                        style="border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="card-title text-base" style="font-weight: 600;">Threat Trends</h3>
+                        <select id="chartRangeFilter" class="input"
+                            style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;">
+                            <option value="7D">Last 7 Days</option>
+                            <option value="1M">Last 1 Month</option>
+                            <option value="1Y">Last 1 Year</option>
+                            <option value="5Y">Last 5 Years</option>
+                        </select>
+                    </div>
+                    <div class="card-content" style="padding-top: 1rem;">
+                        <div class="chart-container">
+                            <canvas id="threatTrendsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header" style="border-bottom: 1px solid var(--border);">
+                        <h3 class="card-title text-base" style="font-weight: 600;">Category Breakdown</h3>
+                    </div>
+                    <div class="card-content" style="padding-top: 1rem;">
+                        <div class="chart-container">
+                            <canvas id="riskBreakdownChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-6" style="grid-template-columns: 2fr 1fr;">
+
+                <!-- Table Section -->
+                <div id="logs-section" class="card">
+                    <div class="card-header"
+                        style="border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 0;">
+                        <h3 class="card-title text-base" style="font-weight: 600;">Flagged Content</h3>
+                        <p class="card-description">Recent items requiring moderation.</p>
+                    </div>
+                    <div
+                        style="padding: 1.5rem; border-bottom: 1px solid var(--border); background-color: var(--secondary);">
+                        <div class="table-controls"
+                            style="margin-bottom: 0; display: flex; align-items: center; gap: 1rem;">
+                            <div class="search-container">
+                                <i data-lucide="search" style="width: 16px;"></i>
+                                <input type="text" id="tableSearch" class="search-input"
+                                    style="background-color: var(--card);" placeholder="Filter table records...">
+                            </div>
+                            <button id="pendingToggleBtn" class="btn btn-ghost"
+                                style="border: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; background-color: var(--card); height: 100%; padding: 0.5rem 1rem;">
+                                <i data-lucide="clock" style="width: 16px;"></i>
+                                <span>Show Pending Only</span>
+                            </button>
+                            <div class="flex space-x-2">
+                                <select id="categoryFilter" class="input" style="width: auto;">
+                                    <option value="All">All Categories</option>
+                                    <option value="Safe">Safe</option>
+                                    <option value="Threat">Threat</option>
+                                    <option value="Potential Fake News">Potential Fake News</option>
+                                    <option value="Harmful / Hate">Harmful / Hate</option>
+                                    <option value="Suspicious">Suspicious</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="flaggedTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Content Preview</th>
+                                    <th>Category</th>
+                                    <th>Risk</th>
+                                    <th>Time</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated by admin.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent Alerts -->
+                <div id="recent-alerts-section" class="card" style="align-self: start;">
+                    <div class="card-header"
+                        style="border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 0;">
+                        <h3 class="card-title text-base" style="font-weight: 600;">Recent System Alerts</h3>
+                    </div>
+                    <div class="card-content p-0">
+                        <div class="recent-alerts px-4" id="recent-alerts-container">
+                            <!-- Populated dynamically by admin.js -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/static/admin.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

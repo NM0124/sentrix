@@ -1,0 +1,9 @@
+Flask
+Flask-Cors
+ibm-watson
+ibm-cloud-sdk-core
+ibmcloudant
+python-dotenv
+requests
+Flask-Session
+google-generativeai
