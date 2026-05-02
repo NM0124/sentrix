@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let riskChartInstance = null;
 
     // --- Chart.js Configuration ---
-    
+
     // Common Chart Options
     const commonOptions = {
         responsive: true,
@@ -31,13 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateThreatTrendsChart(range, logs) {
         const today = new Date();
         today.setHours(23, 59, 59, 999);
-        
+
         let labels = [];
         let highRiskData = [];
         let warningData = [];
-        
+
         if (range === '7D') {
-            for(let i=6; i>=0; i--) {
+            for (let i = 6; i >= 0; i--) {
                 const d = new Date(today);
                 d.setDate(d.getDate() - i);
                 labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
@@ -47,27 +47,27 @@ document.addEventListener('DOMContentLoaded', () => {
             logs.forEach(l => {
                 const logDate = new Date(l.time);
                 const diffDays = Math.floor((today - logDate) / (1000 * 60 * 60 * 24));
-                if(diffDays >= 0 && diffDays < 7) {
+                if (diffDays >= 0 && diffDays < 7) {
                     const idx = 6 - diffDays;
-                    if(l.risk_level === 'High Risk') highRiskData[idx]++;
-                    if(l.risk_level === 'Warning') warningData[idx]++;
+                    if (l.risk_level === 'High Risk') highRiskData[idx]++;
+                    if (l.risk_level === 'Warning') warningData[idx]++;
                 }
             });
         } else if (range === '1M') {
             labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-            highRiskData = [0,0,0,0];
-            warningData = [0,0,0,0];
+            highRiskData = [0, 0, 0, 0];
+            warningData = [0, 0, 0, 0];
             logs.forEach(l => {
                 const logDate = new Date(l.time);
                 const diffDays = Math.floor((today - logDate) / (1000 * 60 * 60 * 24));
-                if(diffDays >= 0 && diffDays < 28) {
+                if (diffDays >= 0 && diffDays < 28) {
                     const weekIdx = 3 - Math.floor(diffDays / 7);
-                    if(l.risk_level === 'High Risk') highRiskData[weekIdx]++;
-                    if(l.risk_level === 'Warning') warningData[weekIdx]++;
+                    if (l.risk_level === 'High Risk') highRiskData[weekIdx]++;
+                    if (l.risk_level === 'Warning') warningData[weekIdx]++;
                 }
             });
         } else if (range === '1Y') {
-            for(let i=11; i>=0; i--) {
+            for (let i = 11; i >= 0; i--) {
                 const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                 labels.push(d.toLocaleDateString('en-US', { month: 'short' }));
                 highRiskData.push(0);
@@ -76,14 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
             logs.forEach(l => {
                 const logDate = new Date(l.time);
                 const diffMonths = (today.getFullYear() - logDate.getFullYear()) * 12 + (today.getMonth() - logDate.getMonth());
-                if(diffMonths >= 0 && diffMonths < 12) {
+                if (diffMonths >= 0 && diffMonths < 12) {
                     const idx = 11 - diffMonths;
-                    if(l.risk_level === 'High Risk') highRiskData[idx]++;
-                    if(l.risk_level === 'Warning') warningData[idx]++;
+                    if (l.risk_level === 'High Risk') highRiskData[idx]++;
+                    if (l.risk_level === 'Warning') warningData[idx]++;
                 }
             });
         } else if (range === '5Y') {
-            for(let i=4; i>=0; i--) {
+            for (let i = 4; i >= 0; i--) {
                 labels.push((today.getFullYear() - i).toString());
                 highRiskData.push(0);
                 warningData.push(0);
@@ -91,10 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
             logs.forEach(l => {
                 const logDate = new Date(l.time);
                 const diffYears = today.getFullYear() - logDate.getFullYear();
-                if(diffYears >= 0 && diffYears < 5) {
+                if (diffYears >= 0 && diffYears < 5) {
                     const idx = 4 - diffYears;
-                    if(l.risk_level === 'High Risk') highRiskData[idx]++;
-                    if(l.risk_level === 'Warning') warningData[idx]++;
+                    if (l.risk_level === 'High Risk') highRiskData[idx]++;
+                    if (l.risk_level === 'Warning') warningData[idx]++;
                 }
             });
         }
@@ -143,10 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'Harmful / Hate': 0,
             'Suspicious': 0
         };
-        
+
         logs.forEach(l => {
             const intent = l.intent || 'Safe';
-            if(counts[intent] !== undefined) {
+            if (counts[intent] !== undefined) {
                 counts[intent]++;
             } else {
                 counts['Safe']++;
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function initCharts(stats, logs = []) {
         const rangeFilter = document.getElementById('chartRangeFilter');
         const range = rangeFilter ? rangeFilter.value : '7D';
-        
+
         updateThreatTrendsChart(range, logs);
         updateCategoryBreakdownChart(logs);
 
@@ -202,11 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderRecentAlerts(logs) {
         const container = document.getElementById('recent-alerts-container');
         if (!container) return;
-        
+
         container.innerHTML = '';
-        
+
         const alerts = logs.filter(l => l.risk_level === 'High Risk' || l.risk_level === 'Warning').slice(0, 4);
-        
+
         if (alerts.length === 0) {
             container.innerHTML = `<p class="text-sm text-muted py-4 text-center">No recent alerts found.</p>`;
             return;
@@ -217,10 +217,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const bgColor = isHigh ? '#fee2e2' : '#fef3c7';
             const fgColor = isHigh ? 'var(--destructive)' : 'var(--warning)';
             const icon = isHigh ? 'alert-triangle' : 'book-x';
-            
+
             const timeObj = new Date(alert.time);
             const diffMins = Math.floor((new Date() - timeObj) / 60000);
-            const timeStr = diffMins < 60 ? `${diffMins} mins ago` : (diffMins < 1440 ? `${Math.floor(diffMins/60)} hours ago` : timeObj.toLocaleDateString());
+            const timeStr = diffMins < 60 ? `${diffMins} mins ago` : (diffMins < 1440 ? `${Math.floor(diffMins / 60)} hours ago` : timeObj.toLocaleDateString());
 
             const item = document.createElement('div');
             item.className = 'alert-item';
@@ -235,15 +235,15 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             container.appendChild(item);
         });
-        
-        if(window.lucide) window.lucide.createIcons();
+
+        if (window.lucide) window.lucide.createIcons();
     }
 
     // --- Modal Logic ---
     const reviewModal = document.getElementById('reviewModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
-    
-    if(closeModalBtn) {
+
+    if (closeModalBtn) {
         closeModalBtn.addEventListener('click', () => {
             reviewModal.classList.remove('active');
         });
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', async (e) => {
             const targetStatus = btn.getAttribute('data-status');
             const docId = reviewModal.dataset.docid;
-            
+
             if (!docId) return;
 
             const allButtons = document.querySelectorAll('.review-action-btn');
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.innerText = originalText;
                     allButtons.forEach(b => b.disabled = false);
                     await fetchDashboardData(); // Instantly refresh dashboard
-                    
+
                     // Show success modal if it was an escalation
                     if (targetStatus === 'escalated' && successModal) {
                         successModal.classList.add('active');
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const err = await res.json();
                         errText = err.error || err.message || errText;
                     } catch (parseErr) {
-                    // Do nothing, fallback already set
+                        // Do nothing, fallback already set
                     }
                     alert(`Failed to update status (${res.status}): ${errText}`);
                     btn.innerText = originalText;
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTable(data) {
         if (!tbody) return;
         tbody.innerHTML = '';
-        
+
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding: 2rem;">No logs found matching your criteria.</td></tr>`;
             return;
@@ -380,15 +380,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('modal-id').textContent = rowData.id;
                     document.getElementById('modal-time').textContent = new Date(rowData.time).toLocaleString();
                     document.getElementById('modal-intent').textContent = rowData.intent;
-                    
+
                     const riskEl = document.getElementById('modal-risk');
                     riskEl.textContent = rowData.risk_level;
-                    if(rowData.risk_level === 'High Risk') riskEl.style.color = 'var(--destructive)';
-                    else if(rowData.risk_level === 'Warning') riskEl.style.color = 'var(--warning)';
+                    if (rowData.risk_level === 'High Risk') riskEl.style.color = 'var(--destructive)';
+                    else if (rowData.risk_level === 'Warning') riskEl.style.color = 'var(--warning)';
                     else riskEl.style.color = 'var(--success)';
 
                     document.getElementById('modal-severity').textContent = rowData.severity || 'Medium';
-                    
+
                     let confDisplay = 'N/A';
                     if (rowData.confidence !== undefined && rowData.confidence !== null) {
                         let conf = parseFloat(rowData.confidence);
@@ -398,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         confDisplay = `${conf.toFixed(2)}%`;
                     }
                     document.getElementById('modal-confidence').textContent = confDisplay;
-                    
+
                     document.getElementById('modal-content').textContent = rowData.content;
                     document.getElementById('modal-reason').textContent = rowData.reason || 'No detailed reasoning generated.';
                     document.getElementById('modal-recommendation').textContent = rowData.recommendation || 'No recommendation available.';
@@ -412,9 +412,9 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', async (e) => {
                 const docId = e.currentTarget.getAttribute('data-docid');
                 const docRev = e.currentTarget.getAttribute('data-docrev');
-                
+
                 if (confirm(`Are you sure you want to permanently delete this record?`)) {
-                    
+
                     e.currentTarget.disabled = true;
                     e.currentTarget.style.opacity = '0.5';
 
@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Re-init icons for dynamic rows
-        if(window.lucide) {
+        if (window.lucide) {
             window.lucide.createIcons();
         }
     }
@@ -478,8 +478,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Apply Search
         if (term) {
-            filtered = filtered.filter(row => 
-                (row.content && row.content.toLowerCase().includes(term)) || 
+            filtered = filtered.filter(row =>
+                (row.content && row.content.toLowerCase().includes(term)) ||
                 (row.id && row.id.toLowerCase().includes(term)) ||
                 (row.intent && row.intent.toLowerCase().includes(term)) ||
                 (row.risk_level && row.risk_level.toLowerCase().includes(term))
@@ -523,16 +523,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const stats = await statsRes.json();
                 const totalEl = document.getElementById('stat-total');
                 if (totalEl) totalEl.textContent = stats.total_analyses;
-                
+
                 const highRiskEl = document.getElementById('stat-high-risk');
                 if (highRiskEl) highRiskEl.textContent = stats.high_risk_cases;
-                
+
                 const fakeNewsEl = document.getElementById('stat-fake-news');
                 if (fakeNewsEl) fakeNewsEl.textContent = stats.fake_news_detected;
-                
+
                 const pendingEl = document.getElementById('stat-pending');
                 if (pendingEl) pendingEl.textContent = stats.pending_reviews;
-                
+
                 initCharts(stats, fetchedLogs);
             } else {
                 const errorData = await statsRes.json().catch(() => null);
